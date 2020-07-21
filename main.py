@@ -8,10 +8,32 @@ data and more
 """
 import os
 import IPScan
+import ipaddress
 from tqdm import tqdm
 import time
 from math import ceil
 from json import dumps
+
+
+def v4orv6(ip):
+    try:
+        ipaddress.IPv4Address(ip)
+        octets = ip.split(".")
+        return "ip4-"+octets[0]+"-"+octets[1]+"-"+octets[2]+"-"+octets[3]+".json"
+    except ipaddress.AddressValueError:
+        hextets = ip.split(":")
+        newHextets = []
+        print(hextets)
+        for h in range(len(hextets)):
+            if hextets[h] != "":
+                newHextets.append(hextets[h].zfill(4))
+            else:
+                no = 8-(len(hextets)-1)
+                for x in range(no):
+                    newHextets.append("0000")
+                print(newHextets)
+        return "ip6-" + newHextets[0]+"-"+ newHextets[1]+"-"+ newHextets[2]+"-"+ newHextets[3]+"-"+ newHextets[4]+"-"+ newHextets[5]+"-"+ newHextets[6]+"-"+ newHextets[7]+".json"
+
 
 def prettyJson(json):
 	""" format a python dict (json object) """
@@ -26,8 +48,7 @@ with open("IPs.txt", "r") as ipFile:
         IPList.append(line.replace("\n", ""))
 pastIPs = os.listdir(SAVEFOLDER)
 for ip in IPList:
-    octets = ip.split(".")
-    formatIP = "ip4-"+octets[0]+"-"+octets[1]+"-"+octets[2]+"-"+octets[3]+".json"
+    formatIP = v4orv6(ip)
     if formatIP not in pastIPs:
         pbar.set_description_str("Processing IP Address: " + ip)
         with open(SAVEFOLDER+formatIP, "w+") as f:
