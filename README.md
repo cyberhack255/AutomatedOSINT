@@ -2,7 +2,7 @@
 
 AutomatedOSINT is a tool used to automate the collection of Open Source Intelligence data on IP addresses. The program will  run the IP address found through a series of OSINT API's and then create a JSON file containing the output of the scans which can then be easily parsed through.
 
-The program will accept both IPv4 and IPv6 addresses and will name the output files accordingly.
+The program will accept both IPv4 and IPv6 addresses and will name the output files accordingly. The IP addresses can be supplied either directly or through a file, an example file `ipFile.example` has been provided for you
 
 See [automatedOSINT](./automatedOSINT.py) and [IPScan](./IPScan.py) for the code.
 
@@ -45,6 +45,11 @@ foo@bar~$ python3 automatedOSINT.py -i <IP Address>
 
 ```console
 foo@bar~$ python3 automatedOSINT.py -f <file containing ip addresses>
+```
+
+**Specifying an output directory**
+```console
+foo@bar~$ python3 automatedOSINT.py -d <directory to write file in>
 ```
 
 For the full list of options run the command:

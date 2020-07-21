@@ -1,3 +1,4 @@
 .env
 IPs.txt
 IPLogFiles/
+__pycache__/

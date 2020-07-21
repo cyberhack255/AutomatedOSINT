@@ -35,64 +35,64 @@ def wSubP(args):
 	"""
 	return subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-def getIpAndDomain(ipOrDomain):
-	"""return the ip and the domain from a value that is either an ip or a
-	domain
+def getDomain(ipAddr):
+	"""return the corrosponding domain from the IP passed into the function
 
 	Args:
-		ipOrDomain (string): ip address or a domain
+		ipAddr (string): ip address to scan
 
 	Returns:
-		Tuple(string, string): ip address and domain
+		string: the domain
 	"""
-	isIp = True
-	ipaddress.ip_address(ipOrDomain)
-	if isIp:
-		ipAddress = ipOrDomain
-		domain = re.findall(r"pointer (.*?)$",
-		wSubP(["host", ipOrDomain]).stdout.decode("utf-8"), re.MULTILINE)
-		if len(domain) > 0:
-			domain = domain[0][:-1]
-		else:
-			domain = ""
+
+	domain = re.findall(r"pointer (.*?)$",
+	wSubP(["host", ipAddr]).stdout.decode("utf-8"), re.MULTILINE)
+	if len(domain) > 0:
+		domain = domain[0][:-1]
 	else:
-		domain = ipOrDomain
-		ipAddress = re.findall(r"address (.*?)$",
-		wSubP(["host", ipOrDomain]).stdout.decode("utf-8"), re.MULTILINE)[0]
+		domain = ""
 
-	return ipAddress, domain
+	return domain
 
-def isUp(ipOrDomain):
+def isUp(ipAddr):
 	"""ping the ip or domain to determine if it is currently up
 
 	Args:
-		ipOrDomain (string): ip address or a domain
+		ipAddr (string): ip address to scan
 
 	Returns:
 		string: string result
 	"""
-	pingResults = wSubP(["ping", "-c", "3", ipOrDomain])
+	pingResults = wSubP(["ping", "-c", "3", ipAddr])
 	result = re.findall(r", (.) received",
 	pingResults.stdout.decode("utf-8"))[0] in ("2", "3")
-	return ipOrDomain + " is " + ("up" if result else "down")
+	return ipAddr + " is " + ("up" if result else "down")
 
 
-def whoisQuery(ipOrDomain):
-	d = IPWhois(ipOrDomain)
+def whoisQuery(ipAddr):
+	"""return whois results
+
+	Args:
+		ipAddr (string): ip address to scan
+
+	Returns:
+		string string result
+	"""
+	d = IPWhois(ipAddr)
 
 	return prettyJson(d.lookup_whois())
 
 
-def dig(ipOrDomain):
+def dig(ipAddr):
 	"""return dig results
 
 	Args:
-		ipOrDomain (string): ip address or a domain
+		ipAddr (string): ip address to scan
 
 	Returns:
 		string: string result
 	"""
-	digResults = wSubP(["host", "-a", ipOrDomain])
+	digResults = wSubP(["host", "-a", ipAddr])
 	digRes = re.findall(r"ANSWER SECTION:(.*?)Received",
 	digResults.stdout.decode("utf-8"),
 	re.DOTALL)
@@ -104,7 +104,14 @@ def dig(ipOrDomain):
 
 @limits(calls=1, period=5)
 def ipvigilante(ipAddr):
-	""" ipvigilante api ip: target ip"""
+	""" ipvigilante api ip: target ip
+	
+	Args:
+		ipAddr (String): ip address to scan
+		
+	Returns:
+		string: string result
+	"""
 	location = requests.get("https://ipvigilante.com/" + ipAddr).json()
 	if location["status"] == "success":
 		return prettyJson(location["data"])
@@ -112,7 +119,14 @@ def ipvigilante(ipAddr):
 
 @limits(calls=1, period=10)
 def shodanApi(ipAddr):
-	""" shodan api """
+	""" shodan api 
+
+	Args:
+		ipAddr (String): ip address to scan
+		
+	Returns:
+		string: string result	
+	"""
 	try:
 		host = shodan_api.host(ipAddr)
 	except shodan.exception.APIError as err:
@@ -125,7 +139,13 @@ def shodanApi(ipAddr):
 
 @limits(calls=1, period=2)
 def urlscan(targetUrl, public=False):
-	""" urlscan api """
+	""" urlscan api 
+	Args:
+		targetUrl (String): url to scan
+	
+	Returns:
+		string: string result
+	"""
 	headers = {'Content-Type': 'application/json', 'API-Key': urlscan_api, }
 	if not public:
 		data = '{"url": "%s"}' % targetUrl
@@ -141,7 +161,15 @@ def urlscan(targetUrl, public=False):
 
 @limits(calls=1, period=10)
 def threatcrowdApi(ipAddr, domain):
-	""" threatcrowd api """
+	""" threatcrowd api 
+
+	Args:
+		ipAddr (String): ip address to scan
+		domain (String): domain to scan
+		
+	Returns:
+		string: string result
+	"""
 	tempDict = {}
 	ipReport = threatcrowd.ip_report(ipAddr)
 
@@ -159,51 +187,30 @@ def threatcrowdApi(ipAddr, domain):
 
 	return prettyJson(tempDict)
 
-def run(ipOrDomain):
+def run(ipAddress):
 	"""main entry point from calling program
 
 	Args:
-		ipOrDomain (string): ip address or a domain
+		ipAddress (string): the ip address to run through the various scans
 
 	Returns:
-		string: string result
+		string: json formatted string to be written to a file
 	"""
 	retJSON = "{"
-	# Get ip and domain
-	ipAddress, domain = getIpAndDomain(ipOrDomain)
 
-	# linux/ unix functions in place of the folowing resources
-	# https://centralops.net/co/
-	# https://www.ipvoid.com/
-	# https://whois.domaintools.com/
-	retJSON += "\n\"isup\": \"" + isUp(ipOrDomain) + "\","
-	retJSON += "\n\"dig\": \""+ dig(ipOrDomain) + "\","
+	domain = getDomain(ipAddress)
 
-	retJSON  += "\n\"whois\": "+ whoisQuery(ipOrDomain) + ","
+	retJSON += "\n\"isup\": \"" + isUp(ipAddress) + "\","
 
+	retJSON += "\n\"dig\": \""+ dig(ipAddress) + "\","
 
-	# https://www.ipvigilante.com/api-developer-docs/
+	retJSON  += "\n\"whois\": "+ whoisQuery(ipAddress) + ","
+
 	retJSON += "\n\"ipvigilante\": " + ipvigilante(ipAddress) + ","
 
-	# https://shodan.readthedocs.io/en/latest/tutorial.html#installation
 	retJSON += "\n\"shodan\": " + shodanApi(ipAddress) + ","
 
-	# https://urlscan.io/about-api/
 	retJSON += "\n\"urlscan\": " + urlscan(domain) + ","
-	#https://www.threatcrowd.org/
-	#https://github.com/AlienVault-OTX/ApiV2
-	'''
-	Limits
-	Please limit all requests to no more than one request every ten seconds.
-
-	Brief bursts of requests that exceed this (eg; if you're using Maltego to
-	enrich a large set of indicators) are ok so long as they don't significantly
-	impact the performance of the server.
-
-	If you require faster access than this please drop me a line at
-	threatcrowd@gmail.com and I can raise it - the broad principal is that faster
-	access is fine, so long as it doesn't impact the performance for other users.
-	'''
 
 	retJSON += "\n\"threatcrowd\": " + threatcrowdApi(ipAddress, domain) 
 
