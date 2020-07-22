@@ -9,6 +9,16 @@ from math import ceil
 from json import dumps
 
 
+BANNER = """\033[91m
+             _                        _           _ _____ _____ _____ _   _ _____ 
+            | |                      | |         | |  _  /  ___|_   _| \ | |_   _|
+  __ _ _   _| |_ ___  _ __ ___   __ _| |_ ___  __| | | | \ `--.  | | |  \| | | |  
+ / _` | | | | __/ _ \| '_ ` _ \ / _` | __/ _ \/ _` | | | |`--. \ | | | . ` | | |  
+| (_| | |_| | || (_) | | | | | | (_| | ||  __/ (_| \ \_/ /\__/ /_| |_| |\  | | |  
+ \__,_|\__,_|\__\___/|_| |_| |_|\__,_|\__\___|\__,_|\___/\____/ \___/\_| \_/ \_/  
+                                                                                  
+                                                                                  \033[0m"""
+
 def options():
     options = []
     options.append(optparse.make_option('--ip-address', '-i', dest='ipaddress', help='single ip address to scan', default=None))
@@ -102,6 +112,8 @@ def main(options):
 
 
 if __name__ == "__main__":
+
+    print(BANNER)
 
     usage_str = "usage: %prog [options] \n Gather OSINT data on ip addresses"
     parser = optparse.OptionParser(usage=usage_str, option_list=options())
