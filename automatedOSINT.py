@@ -19,10 +19,10 @@ def options():
 
 def v4orv6(ip):
     """distinguishes between IPv4 and IPv6 addresses and creates the appropriate filename
-        
+
         Args:
             ip - the IP which to convert
-        
+
         Returns:
             String - the appropriate filename which to save the file under
     """
@@ -46,8 +46,8 @@ def v4orv6(ip):
 
 
 def prettyJson(json):
-	""" format a python dict (json object) """
-	return dumps(json, indent="  ")
+    """ format a python dict (json object) """
+    return dumps(json, indent="  ")
 
 
 def main(options):
@@ -55,7 +55,7 @@ def main(options):
 
     Args:
         options - the parsed options provided by optparse
-    
+
     Returns:
         N/A
     """
@@ -64,7 +64,7 @@ def main(options):
 
 
     pbar = tqdm(total=100, dynamic_ncols=True,leave=True ,bar_format='{percentage:3.0f}% |{bar:40}| {desc}')
-       
+
     IPList = []
     if options.ipfile:
         with open(options.ipfile, "r") as f:
@@ -96,19 +96,20 @@ def main(options):
                 pbar.set_description_str("IP Address: "+ ip +" already been scanned")
                 time.sleep(2)
                 pbar.update(ceil(100/len(IPList)))
-                
+
     pbar.n = 100
     pbar.close()
 
 
 if __name__ == "__main__":
 
-    usage_str = "usage: %prog [options] \n Gather OSINT data on ip addresses" 
+    usage_str = "usage: %prog [options] \n Gather OSINT data on ip addresses"
     parser = optparse.OptionParser(usage=usage_str, option_list=options())
     options, args = parser.parse_args()
 
     if not options.ipaddress and not options.ipfile:
-        print("You need to specify an IP address or file containing IP addresses to scan")
+        parser.print_help()
+        print("\nYou need to specify an IP address or file containing IP addresses to scan")
         sys.exit()
 
     if options.ipfile and not os.path.isfile(options.ipfile):
