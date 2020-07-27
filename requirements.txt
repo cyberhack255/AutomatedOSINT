@@ -1,7 +1,6 @@
-whois==0.9.7
-ipwhois==1.1.0
-shodan==1.23.0
 ratelimit==2.2.1
-tqdm==4.47.0
-requests==2.22.0
 threatcrowd==0.4
+shodan==1.23.0
+requests==2.22.0
+tqdm==4.47.0
+ipwhois==1.1.0

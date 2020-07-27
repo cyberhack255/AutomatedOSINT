@@ -11,7 +11,6 @@ import requests
 from ratelimit import limits
 import shodan
 import threatcrowd
-import whois
 from ipwhois import IPWhois
 
 # Read in API keys

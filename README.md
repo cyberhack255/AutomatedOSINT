@@ -26,7 +26,7 @@ All logfiles from scans will be saved in the directory `IPLogFiles` in JSON form
 ### Install Dependencies
 
 ```console
-foo@bar:~$ python -m pip install -r requirements.txt
+foo@bar:~$ python3 -m pip install -r requirements.txt
 ```
 
 

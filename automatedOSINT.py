@@ -2,7 +2,7 @@ import os
 import sys
 import IPScan
 import ipaddress
-import optparse
+import argparse
 from tqdm import tqdm
 import time
 from math import ceil
@@ -23,13 +23,6 @@ BANNER = """\033[93m
 *  github.com/JoeWrieden                                                             *
 **************************************************************************************
 \033[0m""" 
-
-def options():
-    options = []
-    options.append(optparse.make_option('--ip-address', '-i', dest='ipaddress', help='single ip address to scan', default=None))
-    options.append(optparse.make_option('--ip-file', '-f', dest='ipfile', help='file containing ip addresses', default=None))
-    options.append(optparse.make_option('--out-dir', '-o', dest='outdir', help='directory to write logfiles to', default='IPLogFiles/'))
-    return options
 
 
 def v4orv6(ip):
@@ -65,28 +58,28 @@ def prettyJson(json):
     return dumps(json, indent="  ")
 
 
-def main(options):
+def main(args):
     """ Collects the IP addresses given to it and runs them through IPScan dumping the results in logfiles
 
     Args:
-        options - the parsed options provided by optparse
+        args - the parsed args provided by argparse
 
     Returns:
         N/A
     """
 
-    SAVEFILE = options.outdir.strip("/")+"/"
+    SAVEFILE = args.outdir.strip("/")+"/"
 
 
     pbar = tqdm(total=100, dynamic_ncols=True,leave=True ,bar_format='{percentage:3.0f}% |{bar:40}| {desc}')
 
     IPList = []
-    if options.ipfile:
-        with open(options.ipfile, "r") as f:
+    if args.ipfile:
+        with open(args.ipfile, "r") as f:
             for line in f:
                 IPList.append(line.replace("\n", ""))
     else:
-        IPList.append(options.ipaddress)
+        IPList.append(args.ipaddress)
     pastIPs = os.listdir(SAVEFILE)
     for ip in IPList:
         valid = True
@@ -105,8 +98,8 @@ def main(options):
                     tempStr = IPScan.run(ip)
                     f.write(tempStr)
                     pbar.set_description_str("IP Address: "+ ip +" has been scanned")
-                    pbar.update(ceil(100/len(IPList)))
                     time.sleep(2)
+                    pbar.update(ceil(100/len(IPList)))
             else:
                 pbar.set_description_str("IP Address: "+ ip +" already been scanned")
                 time.sleep(2)
@@ -120,27 +113,35 @@ if __name__ == "__main__":
 
     print(BANNER)
 
-    usage_str = "usage: %prog [options] \n Gather OSINT data on ip addresses"
-    parser = optparse.OptionParser(usage=usage_str, option_list=options())
-    options, args = parser.parse_args()
 
-    if not options.ipaddress and not options.ipfile:
+    parser = argparse.ArgumentParser(
+    description='Gather OSINT data on IP addresses')
+    parser.add_argument("-f", "--ip-file", dest="ipfile",
+                        help="Path to a file, directory or ZIP archive containing IP addresses to scan.")
+    parser.add_argument("-i",  "--ip-address", dest="ipaddress",
+                        help="A single ip address to scan")
+    parser.add_argument("-o",  "--outfile", dest="outdir",
+                        help="A Directory to wirte the logfiles from the completed scans to", default="IPLogFiles/")
+
+    args = parser.parse_args()
+
+    if not args.ipaddress and not args.ipfile:
         parser.print_help()
         print("\nYou need to specify an IP address or file containing IP addresses to scan")
         sys.exit()
 
-    if options.ipfile and not os.path.isfile(options.ipfile):
-        print("IP address file does not exist: " + options.ipfile)
+    if args.ipfile and not os.path.isfile(args.ipfile):
+        print("IP address file does not exist: " + args.ipfile)
         sys.exit()
 
-    if options.outdir and not os.path.isdir(options.outdir) and options.outdir != "IPLogFiles/":
-        print("Out Directory does not exist: "+ options.outdir+"\nwould you like to create it (Y/n): ", end="")
+    if args.outdir and not os.path.isdir(args.outdir) and args.outdir != "IPLogFiles/":
+        print("Out Directory does not exist: "+ args.outdir+"\nwould you like to create it (Y/n): ", end="")
         y_or_no = input().lower()
         if y_or_no == "n":
             sys.exit()
         else:
-            os.system("mkdir -p " + options.outdir)
+            os.system("mkdir -p " + args.outdir)
     else:
         os.system("mkdir -p IPLogFiles")
 
-    main(options)
+    main(args)
