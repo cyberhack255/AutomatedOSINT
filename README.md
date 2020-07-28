@@ -38,18 +38,18 @@ $ python3 -m pip install -r requirements.txt
 **Scanning a specific IP Address**
 
 ```bash
-$ python3 automatedOSINT.py -i <IP_Address>
+$ python3 automatedOSINT.py -i ip_address
 ```
 
 **Scanning multiple IP Addresses**
 
 ```bash
-$ python3 automatedOSINT.py -f <file containing ip addresses>
+$ python3 automatedOSINT.py -f file_containing_ip_addresses
 ```
 
 **Specifying an output directory**
 ```bash
-$ python3 automatedOSINT.py -d <directory_to_write_file_in>
+$ python3 automatedOSINT.py -d directory_to_write_file_in
 ```
 
 For the full list of options run the command:
