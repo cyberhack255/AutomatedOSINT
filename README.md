@@ -25,8 +25,8 @@ All logfiles from scans will be saved in the directory `IPLogFiles` in JSON form
 
 ### Install Dependencies
 
-```console
-foo@bar:~$ python3 -m pip install -r requirements.txt
+```bash
+$ python3 -m pip install -r requirements.txt
 ```
 
 
@@ -37,25 +37,25 @@ foo@bar:~$ python3 -m pip install -r requirements.txt
 
 **Scanning a specific IP Address**
 
-```console
-foo@bar~$ python3 automatedOSINT.py -i <IP Address>
+```bash
+$ python3 automatedOSINT.py -i <IP_Address>
 ```
 
 **Scanning multiple IP Addresses**
 
-```console
-foo@bar~$ python3 automatedOSINT.py -f <file containing ip addresses>
+```bash
+$ python3 automatedOSINT.py -f <file containing ip addresses>
 ```
 
 **Specifying an output directory**
-```console
-foo@bar~$ python3 automatedOSINT.py -d <directory to write file in>
+```bash
+$ python3 automatedOSINT.py -d <directory_to_write_file_in>
 ```
 
 For the full list of options run the command:
 
-```console
-foo@bar:~$ python3 automatedOSINT.py -h
+```bash
+$ python3 automatedOSINT.py -h
 ```
 
 
