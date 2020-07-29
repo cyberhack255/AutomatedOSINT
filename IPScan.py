@@ -44,13 +44,14 @@ def getDomain(ipAddr):
 		string: the domain
 	"""
 
-	domain = re.findall(r"pointer (.*?)$",
-	wSubP(["host", ipAddr]).stdout.decode("utf-8"), re.MULTILINE)
-	if len(domain) > 0:
-		domain = domain[0][:-1]
-	else:
-		domain = ""
+	domainStr = wSubP(["host", ipAddr]).stdout.decode("utf-8")
 
+	if "not found" in domainStr:
+		return ""
+
+	domain = re.findall(r"pointer (.*?)$",
+	domainStr, re.MULTILINE)
+	domain = domain[0][:-1]
 	return domain
 
 def isUp(ipAddr):
@@ -82,24 +83,21 @@ def whoisQuery(ipAddr):
 	return prettyJson(d.lookup_whois())
 
 
-def dig(ipAddr):
+def dig(domain):
 	"""return dig results
 
 	Args:
-		ipAddr (string): ip address to scan
+		domain (string): domain to scan
 
 	Returns:
 		string: string result
 	"""
-	digResults = wSubP(["host", "-a", ipAddr])
-	digRes = re.findall(r"ANSWER SECTION:(.*?)Received",
-	digResults.stdout.decode("utf-8"),
-	re.DOTALL)
-	if len(digRes) > 0:
-		tempStr = digRes[0].replace("\n", "").replace("\t", "    ")
-	else:
-		tempStr = "Dig scan failed"
-	return tempStr
+	if domain == "":
+		return "\"dig scan failed\""
+
+	digResults = subprocess.getoutput("dig a "+domain+" +nocomments +noquestion +noauthority +noadditional +nostats  | awk '{if (NR>3){print}}'| tr -s '\t' | jq -R 'split(\"\t\") |{Name:.[0],TTL:.[1],Class:.[2],Type:.[3],IpAddress:.[4]}' | jq --slurp .")
+
+	return digResults
 
 @limits(calls=1, period=5)
 def ipvigilante(ipAddr):
@@ -199,9 +197,11 @@ def run(ipAddress):
 
 	domain = getDomain(ipAddress)
 
+	print(domain)
+
 	retJSON += "\n\"isup\": \"" + isUp(ipAddress) + "\","
 
-	retJSON += "\n\"dig\": \""+ dig(ipAddress) + "\","
+	retJSON += "\n\"dig\": " + dig(domain) + ","
 
 	retJSON  += "\n\"whois\": "+ whoisQuery(ipAddress) + ","
 
